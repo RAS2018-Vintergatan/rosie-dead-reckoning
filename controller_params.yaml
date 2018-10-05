@@ -1,0 +1,5 @@
+motor_left_pid: {Kp: 0.55, Ki: 0.4, Kd: 0.2}
+motor_right_pid: {Kp: 0.55, Ki: 0.4, Kd: 0.2}
+wheel_left_radius: 0.49
+wheel_right_radius: 0.49
+wheel_separation: 0.232
