@@ -12,7 +12,7 @@ double offsetIn = 0; // In direction of driving
 double offsetCr = 0; // Cross direction of driving
 
 double wlR = 1.0; //wheel left radius
-double wrR = 1.0;
+double wrR = 1.0; //wheel right radius
 
 double wheelSeparation = 1.0;
 
@@ -30,9 +30,6 @@ double pose_theta = 0.0;
 double est_v_right = 0.0;
 double est_v_left = 0.0;
 
-double dt_left = 0.0;
-double dt_right = 0.0;
-
 ros::Time t_last_l;
 ros::Time t_last_r;
 
@@ -40,30 +37,21 @@ ros::Publisher imu_pub;
 ros::Publisher odom_pub;
 
 void encoderLeftCallback(const phidgets::motor_encoder& msg){
-    //ROS_INFO("-----------");
-    //ROS_INFO("LEFT:: E1: %d, E2: %d", msg.count,msg.count_change);
-
     ros::Time t_now = msg.header.stamp;
-    dt_left = (t_now-t_last_l).toSec();
-    est_w_left = -((double)msg.count_change * dt_left * 2.0 * 3.1415)/(360.0);
-    est_v_left = est_w_left/wlR;
-
-    //ROS_INFO("-----------");
+    double dt = (t_now-t_last_l).toSec();
+    
+    est_w_left = ((double)msg.count_change * dt * 2.0 * 3.1415)/(360.0);
+    est_v_left = -est_w_left/wlR;
 
     t_last_l = t_now;
 }
 
 void encoderRightCallback(const phidgets::motor_encoder& msg){
-    //ROS_INFO("-----------");
-    //ROS_INFO("LEFT:: E1: %d, E2: %d", msg.count,msg.count_change);
-
     ros::Time t_now = msg.header.stamp;
-    dt_right = (t_now-t_last_r).toSec();
-
-    est_w_right = ((double)msg.count_change * dt_right * 2.0 * 3.1415)/(360.0);
+    double dt = (t_now-t_last_r).toSec();
+    
+    est_w_right = ((double)msg.count_change * dt * 2.0 * 3.1415)/(360.0);
     est_v_right = est_w_right/wrR;
-
-    //ROS_INFO("-----------");
 
     t_last_r = t_now;
 }
@@ -78,7 +66,7 @@ void odomCallback(const nav_msgs::Odometry& odom){
 	q[2] = odom.pose.pose.orientation.z;
 	q[3] = odom.pose.pose.orientation.w;
     transform.setRotation( q );
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "base_line"));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "base_link"));
 }
 
 void imuCallback(const sensor_msgs::Imu& msg){
@@ -87,18 +75,19 @@ void imuCallback(const sensor_msgs::Imu& msg){
 
 ros::Time last_odom_time;
 nav_msgs::Odometry lastOdom;
+
 void updateOdom(){
 	ros::Time current_odom_time = ros::Time::now();
 	float dt = (current_odom_time - last_odom_time).toSec();
 
 	//Velocities
-	double velLinear = (est_v_left+est_v_right)/2;
-	double velAngular = (est_v_left-est_v_right)/((double) 2*wheelSeparation);
+	double velLinear = (est_v_left+est_v_right)/2.0;
+	double velAngular = (est_v_right-est_v_left)/(2.0*wheelSeparation);
 
-    //Odometry
+    //Odometry (Position of rosie base_link in relation to world)
     lastOdom.header.stamp = current_odom_time;
     lastOdom.header.frame_id = "world";
-    lastOdom.child_frame_id = "base_line";
+    lastOdom.child_frame_id = "base_link";
 
 	pose_theta += velAngular*dt;
 	pose_x += velLinear*cos(pose_theta)*dt;
@@ -138,7 +127,7 @@ void updateOdom(){
     tf::Quaternion qtf;
     qtf.setRPY(0, 0, 0);
     transform.setRotation( qtf );
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_line", "wheelodom"));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "wheelodom"));
 
 	last_odom_time = current_odom_time;
 }
@@ -158,61 +147,12 @@ int main(int argc, char **argv){
     odom_pub = n.advertise<nav_msgs::Odometry>("/odom",1);
     imu_pub = n.advertise<sensor_msgs::Imu>("/imu_data",1);
 	
-    /*odom.pose.pose.position.x = 0;
-    odom.pose.pose.position.y = 0;
-    odom.pose.pose.orientation.z = 0;
-
-	odom.twist.twist.linear.x = 0;
-	odom.twist.twist.linear.y = 0;
-	odom.twist.twist.linear.z = 0;
-	odom.twist.twist.angular.x = 0;
-	odom.twist.twist.angular.y = 0;
-	odom.twist.twist.angular.z = 0;
-	*/
     ros::Rate loop_rate(10);
-
- 
-    //tf::TransformBroadcaster br;
 
 	last_odom_time = ros::Time::now();
     while(ros::ok()){
 		updateOdom();
-/*
-        transform.setOrigin( tf::Vector3(0.0, 0.0, 0.0) );
-        transform.setRotation( tf::Quaternion(0, 0, 0) );
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "wheelodom"));
-
-	// orientation
-	double dist_l = est_v_left*dt_left;
-	double dist_r = est_v_right*dt_right;
-	double abs_wheel_dist = abs(dist_l-dist_r);
-	double phi = abs_wheel_dist/(double)wheelSeparation;
-
-	// distance
-	double center_dist = (dist_l+dist_r)/2;	
-	
-	//velocities
-	double velx = (est_v_left+est_v_right)/2;
-	double veltheta = (est_v_left-est_v_right)/((double) 2*wheelSeparation);
-
-	//pose
-	pose_theta += phi;
-	pose_x += velx*cos(pose_theta);
-	pose_y += velx*sin(pose_theta);
-	pose_z += 0.0;
-
-*/
-
-
-
-
- 	//ROS_INFO("x: %f, y: %f, theta: %f", pose.x, pose.y, pose.theta);
-/*
-	odomCallback(odom);
-	odom_pub.publish(odom);
-*/
         ros::spinOnce();
         loop_rate.sleep();
-
     }
 }
