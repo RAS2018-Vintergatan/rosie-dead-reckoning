@@ -66,7 +66,7 @@ void odomCallback(const nav_msgs::Odometry& odom){
 	q[2] = odom.pose.pose.orientation.z;
 	q[3] = odom.pose.pose.orientation.w;
     transform.setRotation( q );
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "rosie"));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "base_link"));
 }
 
 void imuCallback(const sensor_msgs::Imu& msg){
@@ -84,10 +84,10 @@ void updateOdom(){
 	double velLinear = (est_v_left+est_v_right)/2.0;
 	double velAngular = (est_v_right-est_v_left)/(2.0*wheelSeparation);
 
-    //Odometry (Position of rosie in relation to world)
+    //Odometry (Position of rosie base_link in relation to world)
     lastOdom.header.stamp = current_odom_time;
     lastOdom.header.frame_id = "world";
-    lastOdom.child_frame_id = "rosie";
+    lastOdom.child_frame_id = "base_link";
 
 	pose_theta += velAngular*dt;
 	pose_x += velLinear*cos(pose_theta)*dt;
@@ -127,7 +127,7 @@ void updateOdom(){
     tf::Quaternion qtf;
     qtf.setRPY(0, 0, 0);
     transform.setRotation( qtf );
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "rosie", "wheelodom"));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "wheelodom"));
 
 	last_odom_time = current_odom_time;
 }
