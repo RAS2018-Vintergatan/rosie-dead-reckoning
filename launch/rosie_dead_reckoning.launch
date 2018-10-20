@@ -1,0 +1,22 @@
+<launch>
+	
+	<!-- run the motors left and right for encoder information -->
+	<node pkg="phidgets" type="motor" name="motor_left" respawn="true">
+		<arg name="__name" "motorLeft" />
+		<arg name="_name" "motorLeft" />
+		<arg name="_serial" "475406" />
+	</node>
+	
+	<node pkg="phidgets" type="motor" name="motor_right" respawn="true">
+		<arg name="__name" "motorRight" />
+		<arg name="_name" "motorRight" />
+		<arg name="_serial" "469515" />
+	</node>
+	
+	<!-- load parameters -->
+	<rosparam command="load" file="controller_params.yaml" />
+	
+	<!-- run the dead reckoning node -->
+	<node pkg="rosie_dead_reckoning" type="rosie_reckoning_self" name="rosie_dead_reckoning" respawn="true" />
+	
+</launch>
