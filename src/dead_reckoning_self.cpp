@@ -41,7 +41,7 @@ void encoderLeftCallback(const phidgets::motor_encoder& msg){
     double dt = (t_now-t_last_l).toSec();
     
     est_w_left = ((double)msg.count_change * dt * 2.0 * 3.1415)/(360.0);
-    est_v_left = -est_w_left/wlR;
+    est_v_left = est_w_left/wlR;
 
     t_last_l = t_now;
 }
@@ -51,7 +51,7 @@ void encoderRightCallback(const phidgets::motor_encoder& msg){
     double dt = (t_now-t_last_r).toSec();
     
     est_w_right = ((double)msg.count_change * dt * 2.0 * 3.1415)/(360.0);
-    est_v_right = est_w_right/wrR;
+    est_v_right = -est_w_right/wrR;
 
     t_last_r = t_now;
 }
@@ -89,9 +89,9 @@ void updateOdom(){
     lastOdom.header.frame_id = "world";
     lastOdom.child_frame_id = "base_link";
 
-	pose_theta += velAngular*dt;
+    pose_theta += velAngular*dt;
 	pose_x += velLinear*cos(pose_theta)*dt;
-    pose_y += velLinear*sin(pose_theta)*dt;
+	pose_y += velLinear*sin(pose_theta)*dt;
 
     lastOdom.pose.pose.orientation.x = 0;
     lastOdom.pose.pose.orientation.y = 0;
@@ -103,20 +103,20 @@ void updateOdom(){
 
     float sF = 0.000001;
     lastOdom.pose.covariance = {sF,0,0,0,0,0,
-    						0,sF,0,0,0,0,
-							0,0,sF,0,0,0,
-							0,0,0,sF,0,0,
-							0,0,0,0,sF,0,
-							0,0,0,0,0,sF};
+    							0,sF,0,0,0,0,
+								0,0,sF,0,0,0,
+								0,0,0,sF,0,0,
+								0,0,0,0,sF,0,
+								0,0,0,0,0,sF};
 
     lastOdom.twist.twist.linear.x = velLinear;
     lastOdom.twist.twist.angular.z = velAngular;
     lastOdom.twist.covariance = {sF,0,0,0,0,0,
-							0,0,0,0,0,0,
-							0,0,0,0,0,0,
-							0,0,0,0,0,0,
-							0,0,0,0,0,0,
-							0,0,0,0,0,sF};
+								0,0,0,0,0,0,
+								0,0,0,0,0,0,
+								0,0,0,0,0,0,
+								0,0,0,0,0,0,
+								0,0,0,0,0,sF};
 
 	odomCallback(lastOdom);
 	odom_pub.publish(lastOdom);
