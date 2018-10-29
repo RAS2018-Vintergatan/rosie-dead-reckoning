@@ -8,7 +8,7 @@
 	 args="_serial:=475406 __name:=motorRight _name:=motorRight"/>
 
 	<!-- load parameters -->
-	<rosparam command="load" file="controller_params.yaml"/>
+	<rosparam command="load" file="$(find rosie_motor_controller)/controller_params.yaml"/>
 	
 	<!-- run the dead reckoning node -->
 	<node pkg="rosie_dead_reckoning" type="rosie_reckoning_self" name="rosie_dead_reckoning"/>
