@@ -82,7 +82,7 @@ void updateOdom(){
 
 	//Velocities
 	double velLinear = (est_v_left+est_v_right)/2.0;
-	double velAngular = (est_v_right-est_v_left)/(2.0*wheelSeparation);
+	double velAngular = (est_v_right-est_v_left)/(wheelSeparation);
 
     //Odometry (Position of rosie base_link in relation to world)
     lastOdom.header.stamp = current_odom_time;
