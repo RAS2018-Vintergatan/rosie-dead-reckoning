@@ -1,5 +1,10 @@
 <launch>
 	
+	<!-- load parameters -->
+	<rosparam command="load" file="$(find rosie_dead_reckoning)/dead_reckoning_params.yaml"/>
+	
+	
+
 	<!-- run the dead reckoning node -->
 	<node pkg="rosie_dead_reckoning" type="rosie_reckoning_self" name="rosie_dead_reckoning"/>
 	

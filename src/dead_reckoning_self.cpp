@@ -22,10 +22,10 @@ double errorSumRight = 00.0;
 double est_w_left = 0.0;
 double est_w_right = 0.0;
 
-double pose_x = 0.0;
-double pose_y = 0.0;
+double pose_x = 2.3;
+double pose_y = 2.3;
 double pose_z = 0.0;
-double pose_theta = 0.0;
+double pose_theta = 3.1415;
 
 double est_v_right = 0.0;
 double est_v_left = 0.0;
@@ -54,6 +54,19 @@ void encoderRightCallback(const phidgets::motor_encoder& msg){
     est_v_right = -est_w_right/wrR;
 
     t_last_r = t_now;
+}
+
+void localizationCallback(const geometry_msgs::PoseStamped& pose){
+	pose_x += (pose.pose.position.x-pose_x)/2;
+	pose_y += (pose.pose.position.y-pose_y)/2;
+
+	tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y,
+					 pose.pose.orientation.z, pose.pose.orientation.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+
+	pose_theta = yaw;
 }
 
 void odomCallback(const nav_msgs::Odometry& odom){
@@ -141,9 +154,13 @@ int main(int argc, char **argv){
     n.getParam("wheel_right_radius", wrR);
     n.getParam("wheel_separation", wheelSeparation);
 
+	n.getParam("rosie_start_position_X", pose_x);
+	n.getParam("rosie_start_position_Y", pose_y);
+
     ros::Subscriber encoderLeft_sub = n.subscribe("/motorLeft/encoder", 1, encoderLeftCallback); //double
     ros::Subscriber encoderRight_sub = n.subscribe("/motorRight/encoder", 1, encoderRightCallback); //double
     ros::Subscriber imu_sub = n.subscribe("/imu/data", 1, imuCallback); 
+    ros::Subscriber localization_sub = n.subscribe("/pose_correction", 1, localizationCallback); 
     odom_pub = n.advertise<nav_msgs::Odometry>("/odom",1);
     imu_pub = n.advertise<sensor_msgs::Imu>("/imu_data",1);
 	
