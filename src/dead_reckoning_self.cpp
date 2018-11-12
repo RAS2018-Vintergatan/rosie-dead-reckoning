@@ -57,8 +57,8 @@ void encoderRightCallback(const phidgets::motor_encoder& msg){
 }
 
 void localizationCallback(const geometry_msgs::PoseStamped& pose){
-	pose_x += (pose.pose.position.x-pose_x)/2;
-	pose_y += (pose.pose.position.y-pose_y)/2;
+	pose_x += (pose.pose.position.x)/4;
+	pose_y += (pose.pose.position.y)/4;
 
 	tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y,
 					 pose.pose.orientation.z, pose.pose.orientation.w);
@@ -66,7 +66,7 @@ void localizationCallback(const geometry_msgs::PoseStamped& pose){
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
 
-	pose_theta = yaw;
+	pose_theta += yaw/4;
 }
 
 void odomCallback(const nav_msgs::Odometry& odom){
