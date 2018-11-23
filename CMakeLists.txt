@@ -7,6 +7,7 @@ catkin_package(
   DEPENDS
   CATKIN_DEPENDS roscpp std_msgs phidgets geometry_msgs sensor_msgs nav_msgs tf
   LIBRARIES
+  INCLUDE_DIRS
 )
 
 include_directories(
@@ -15,8 +16,5 @@ include_directories(
 )
 
 add_executable(rosie_reckoning_self src/dead_reckoning_self.cpp)
-#add_executable(rosie_reckoning_ekf src/dead_reckoning_ekf.cpp)
 target_link_libraries(rosie_reckoning_self ${catkin_LIBRARIES})
-#target_link_libraries(rosie_reckoning_ekf ${catkin_LIBRARIES})
-add_dependencies(rosie_reckoning_self std_msgs phidgets geometry_msgs sensor_msgs nav_msgs tf)
-# add to add_dependencies later rosie_reckoning_ekf
+add_dependencies(rosie_reckoning_self ${catkin_EXPORTED_TARGETS})
