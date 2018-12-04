@@ -156,6 +156,7 @@ int main(int argc, char **argv){
 
 	n.getParam("rosie_start_position_X", pose_x);
 	n.getParam("rosie_start_position_Y", pose_y);
+	n.getParam("rosie_start_angle", pose_theta);
 
     ros::Subscriber encoderLeft_sub = n.subscribe("/motorLeft/encoder", 1, encoderLeftCallback); //double
     ros::Subscriber encoderRight_sub = n.subscribe("/motorRight/encoder", 1, encoderRightCallback); //double
